@@ -29,7 +29,7 @@
 
 <h1>logファイルのinput orientationをcomファイル形式に変換</h1>
 
-<div class="drop-area" id="dropArea">ここに .com ファイルをドラッグ&ドロップ、またはクリックして選択
+<div class="drop-area" id="dropArea">ここに .com / .log ファイルをドラッグ&ドロップ、またはクリックして選択
   <input type="file" id="fileInput" accept=".com,.txt,.log" style="display:none" multiple>
 </div>
 
@@ -126,12 +126,37 @@ dropArea.addEventListener('drop', e => {
 });
 fileInput.addEventListener('change', e => handleFiles(e.target.files));
 
+function extractLastInputOrientation(text) {
+  const lines = text.split('\n');
+  let lastIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('Input orientation:')) lastIdx = i;
+  }
+  if (lastIdx === -1) return null;
+  // ヘッダー5行スキップ → データ行 → "-----" で終了
+  const dataLines = [];
+  for (let i = lastIdx + 5; i < lines.length; i++) {
+    if (lines[i].trim().startsWith('---')) break;
+    dataLines.push(lines[i]);
+  }
+  return dataLines.join('\n');
+}
+
 function handleFiles(files) {
   if (!files.length) return;
   const reader = new FileReader();
   reader.onload = e => {
-    document.getElementById('input').value = e.target.result;
-    document.getElementById('output').value = convert(e.target.result);
+    const content = e.target.result;
+    const isLog = files[0].name.endsWith('.log');
+    let inputText;
+    if (isLog) {
+      inputText = extractLastInputOrientation(content);
+      if (!inputText) { showMsg('Input orientation が見つかりません'); return; }
+    } else {
+      inputText = content;
+    }
+    document.getElementById('input').value = inputText;
+    document.getElementById('output').value = convert(inputText);
     showMsg(`${files[0].name} を読み込み・変換しました`);
   };
   reader.readAsText(files[0]);
