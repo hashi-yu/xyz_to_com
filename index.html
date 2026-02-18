@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gaussian Log → Com</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='8' fill='%236fcdff'/><ellipse cx='32' cy='32' rx='28' ry='12' fill='none' stroke='%23dca4ff' stroke-width='2.5'/><ellipse cx='32' cy='32' rx='28' ry='12' fill='none' stroke='%23ffcf51' stroke-width='2.5' transform='rotate(60 32 32)'/><ellipse cx='32' cy='32' rx='28' ry='12' fill='none' stroke='%236fcdff' stroke-width='2.5' transform='rotate(120 32 32)'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M12 4 L42 4 L52 14 L52 60 L12 60 Z' fill='white' stroke='%236fcdff' stroke-width='2.5' stroke-linejoin='round'/><path d='M42 4 L42 14 L52 14' fill='none' stroke='%236fcdff' stroke-width='2.5' stroke-linejoin='round'/><line x1='20' y1='24' x2='44' y2='24' stroke='%23dca4ff' stroke-width='2' stroke-linecap='round'/><line x1='20' y1='32' x2='38' y2='32' stroke='%23dca4ff' stroke-width='2' stroke-linecap='round' opacity='0.6'/><text x='32' y='52' text-anchor='middle' font-family='serif' font-weight='700' font-size='18' fill='%23ffcf51'>&#x3a8;</text></svg>">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -122,12 +122,91 @@
     .container { flex-direction: column; }
     textarea { height: 250px; }
   }
+  /* プレビューモーダル */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 800px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 20px 24px 12px;
+    font-weight: 700;
+    font-size: 1em;
+    color: #1a1a2e;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .modal-header small {
+    display: block;
+    font-weight: 500;
+    font-size: 0.8em;
+    color: rgba(26,26,46,0.45);
+    margin-top: 4px;
+  }
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+  }
+  .modal-body pre {
+    font-family: 'Menlo', 'SF Mono', 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    white-space: pre;
+    color: rgba(26,26,46,0.4);
+    margin: 0;
+  }
+  .modal-body pre .highlight {
+    background: rgba(111,205,255,0.18);
+    color: #1a1a2e;
+    font-weight: 600;
+    display: inline;
+  }
+  .modal-body pre .highlight-header {
+    background: rgba(220,164,255,0.2);
+    color: #8b5cf6;
+    font-weight: 700;
+    display: inline;
+  }
+  .modal-footer {
+    padding: 14px 24px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .modal-footer button { font-size: 0.85em; padding: 10px 24px; }
 </style>
 </head>
 <body>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="56" height="56" style="margin-bottom:8px"><circle cx="32" cy="32" r="8" fill="#6fcdff"/><ellipse cx="32" cy="32" rx="28" ry="12" fill="none" stroke="#dca4ff" stroke-width="2.5"/><ellipse cx="32" cy="32" rx="28" ry="12" fill="none" stroke="#ffcf51" stroke-width="2.5" transform="rotate(60 32 32)"/><ellipse cx="32" cy="32" rx="28" ry="12" fill="none" stroke="#6fcdff" stroke-width="2.5" transform="rotate(120 32 32)"/></svg>
-<h1>Gaussian Log to Com</h1>
+<div style="display:flex;align-items:center;gap:12px">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="48" height="48">
+    <path d="M12 4 L42 4 L52 14 L52 60 L12 60 Z" fill="white" stroke="#6fcdff" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M42 4 L42 14 L52 14" fill="none" stroke="#6fcdff" stroke-width="2.5" stroke-linejoin="round"/>
+    <line x1="20" y1="24" x2="44" y2="24" stroke="#dca4ff" stroke-width="2" stroke-linecap="round"/>
+    <line x1="20" y1="32" x2="38" y2="32" stroke="#dca4ff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <text x="32" y="52" text-anchor="middle" font-family="serif" font-weight="700" font-size="18" fill="#ffcf51">&#x3a8;</text>
+  </svg>
+  <h1>Gaussian Log to Com</h1>
+</div>
 <p class="subtitle">.log ファイルから.com対応形式に変換</p>
 
 <div class="card">
@@ -148,6 +227,23 @@
     <button id="downloadBtn">ダウンロード</button>
   </div>
   <div class="msg" id="msg"></div>
+</div>
+
+<!-- プレビューモーダル -->
+<div class="modal-overlay" id="previewOverlay">
+  <div class="modal">
+    <div class="modal-header" id="previewHeader">
+      ファイルプレビュー
+      <small>ハイライト部分（最後の Input orientation）を抽出します</small>
+    </div>
+    <div class="modal-body">
+      <pre id="previewContent"></pre>
+    </div>
+    <div class="modal-footer">
+      <button id="previewCancel" style="background:rgba(0,0,0,0.04);color:rgba(26,26,46,0.6);border:1px solid rgba(0,0,0,0.06)">キャンセル</button>
+      <button id="previewConfirm" style="background:linear-gradient(135deg,#ffcf51,#ffb830);color:#1a1a2e;box-shadow:0 2px 12px rgba(255,207,81,0.35)">この部分を抽出</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -183,19 +279,29 @@ function convert(text) {
   }).join('\n');
 }
 
-function extractLastInputOrientation(text) {
+function findLastInputOrientation(text) {
   const lines = text.split('\n');
   let lastIdx = -1;
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].includes('Input orientation:')) lastIdx = i;
   }
   if (lastIdx === -1) return null;
-  const dataLines = [];
-  for (let i = lastIdx + 5; i < lines.length; i++) {
+  // ヘッダー部分: "Input orientation:" から "-----" x2 の後のデータ開始まで
+  let dataStart = lastIdx + 5;
+  let dataEnd = dataStart;
+  for (let i = dataStart; i < lines.length; i++) {
     if (lines[i].trim().startsWith('---')) break;
-    dataLines.push(lines[i]);
+    dataEnd = i + 1;
   }
-  return dataLines.join('\n');
+  return {
+    headerStart: lastIdx,
+    dataStart: dataStart,
+    dataEnd: dataEnd,
+    // データ行のみ（変換用）
+    dataText: lines.slice(dataStart, dataEnd).join('\n'),
+    // ヘッダー含む全セクション（表示用）
+    sectionEnd: dataEnd < lines.length && lines[dataEnd].trim().startsWith('---') ? dataEnd + 1 : dataEnd
+  };
 }
 
 document.getElementById('convertBtn').addEventListener('click', () => {
@@ -233,24 +339,77 @@ inputArea.addEventListener('drop', e => {
   if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
 });
 
+let pendingExtract = null;
+
 function handleFiles(files) {
   if (!files.length) return;
   const reader = new FileReader();
   reader.onload = e => {
     const content = e.target.result;
     const isLog = files[0].name.endsWith('.log');
-    let inputText;
     if (isLog) {
-      inputText = extractLastInputOrientation(content);
-      if (!inputText) { showMsg('Input orientation が見つかりません'); return; }
+      const result = findLastInputOrientation(content);
+      if (!result) { showMsg('Input orientation が見つかりません'); return; }
+      showPreview(content, result, files[0].name);
     } else {
-      inputText = content;
+      document.getElementById('input').value = content;
+      document.getElementById('output').value = '';
+      showMsg(`${files[0].name} を読み込みました — 変換ボタンを押してください`);
     }
-    document.getElementById('input').value = inputText;
-    document.getElementById('output').value = '';
-    showMsg(`${files[0].name} を読み込みました — 変換ボタンを押してください`);
   };
   reader.readAsText(files[0]);
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showPreview(content, result, filename) {
+  const lines = content.split('\n');
+  pendingExtract = result.dataText;
+
+  // ハイライト付きHTML生成
+  let html = '';
+  for (let i = 0; i < lines.length; i++) {
+    const escaped = escapeHtml(lines[i]);
+    if (i >= result.headerStart && i < result.dataStart) {
+      html += `<span class="highlight-header">${escaped}</span>\n`;
+    } else if (i >= result.dataStart && i < result.dataEnd) {
+      html += `<span class="highlight">${escaped}</span>\n`;
+    } else {
+      html += escaped + '\n';
+    }
+  }
+
+  document.getElementById('previewHeader').innerHTML =
+    `${escapeHtml(filename)}<small>ハイライト部分（最後の Input orientation）を抽出します</small>`;
+  document.getElementById('previewContent').innerHTML = html;
+  document.getElementById('previewOverlay').classList.add('active');
+
+  // ハイライト部分にスクロール
+  requestAnimationFrame(() => {
+    const firstHL = document.querySelector('.modal-body .highlight-header');
+    if (firstHL) firstHL.scrollIntoView({ block: 'center' });
+  });
+}
+
+document.getElementById('previewConfirm').addEventListener('click', () => {
+  if (pendingExtract) {
+    document.getElementById('input').value = pendingExtract;
+    document.getElementById('output').value = '';
+    showMsg('抽出しました — 変換ボタンを押してください');
+  }
+  closePreview();
+});
+
+document.getElementById('previewCancel').addEventListener('click', closePreview);
+document.getElementById('previewOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closePreview();
+});
+
+function closePreview() {
+  document.getElementById('previewOverlay').classList.remove('active');
+  pendingExtract = null;
 }
 
 function showMsg(text) {
