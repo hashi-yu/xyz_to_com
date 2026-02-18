@@ -34,20 +34,7 @@
     max-width: 1000px;
     margin-bottom: 20px;
   }
-  .drop-area {
-    border: 2px dashed #ddd;
-    border-radius: 12px;
-    padding: 32px;
-    text-align: center;
-    color: #aaa;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: all 0.25s;
-    margin-bottom: 20px;
-  }
-  .drop-area:hover { border-color: #c4b5fd; color: #7c3aed; background: #faf5ff; }
-  .drop-area.dragover { border-color: #7c3aed; color: #7c3aed; background: #faf5ff; transform: scale(1.01); }
-  .drop-icon { font-size: 2em; margin-bottom: 8px; display: block; }
+  #input.dragover { border-color: #7c3aed; background: #faf5ff; box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
   .container { display: flex; gap: 16px; }
   .panel { flex: 1; display: flex; flex-direction: column; }
   .panel label {
@@ -120,16 +107,10 @@
 <p class="subtitle">.log / .com ファイルから元素記号付き座標に変換</p>
 
 <div class="card">
-  <div class="drop-area" id="dropArea">
-    <span class="drop-icon">&#128196;</span>
-    .log または .com ファイルをドロップ
-    <input type="file" id="fileInput" accept=".com,.txt,.log" style="display:none">
-  </div>
-
   <div class="container">
     <div class="panel">
       <label>Input</label>
-      <textarea id="input" placeholder="ここにペーストしても OK&#10;&#10;対応形式:&#10;  6列 (log):  1  6  0  -1.179  2.621  1.114&#10;  4列 (com):  6  -1.179  2.621  1.114"></textarea>
+      <textarea id="input" placeholder="ペースト or .log / .com ファイルをここにドロップ&#10;&#10;対応形式:&#10;  6列 (log):  1  6  0  -1.179  2.621  1.114&#10;  4列 (com):  6  -1.179  2.621  1.114"></textarea>
     </div>
     <div class="panel">
       <label>Output</label>
@@ -218,18 +199,15 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   showMsg('ダウンロードしました');
 });
 
-const dropArea = document.getElementById('dropArea');
-const fileInput = document.getElementById('fileInput');
+const inputArea = document.getElementById('input');
 
-dropArea.addEventListener('click', () => fileInput.click());
-dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('dragover'); });
-dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
-dropArea.addEventListener('drop', e => {
+inputArea.addEventListener('dragover', e => { e.preventDefault(); inputArea.classList.add('dragover'); });
+inputArea.addEventListener('dragleave', () => inputArea.classList.remove('dragover'));
+inputArea.addEventListener('drop', e => {
   e.preventDefault();
-  dropArea.classList.remove('dragover');
-  handleFiles(e.dataTransfer.files);
+  inputArea.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
 });
-fileInput.addEventListener('change', e => handleFiles(e.target.files));
 
 function handleFiles(files) {
   if (!files.length) return;
