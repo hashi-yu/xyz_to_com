@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>AtomNum → Symbol 変換</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 30px; }
+  h1 { font-size: 1.4em; margin-bottom: 20px; color: #a8d8ea; }
+  .container { display: flex; gap: 20px; width: 100%; max-width: 1100px; }
+  .panel { flex: 1; display: flex; flex-direction: column; }
+  label { font-size: 0.85em; color: #888; margin-bottom: 6px; }
+  textarea { width: 100%; height: 500px; background: #16213e; color: #e0e0e0; border: 1px solid #333; border-radius: 8px; padding: 12px; font-family: 'Menlo', 'Courier New', monospace; font-size: 13px; resize: vertical; }
+  textarea:focus { outline: none; border-color: #a8d8ea; }
+  .buttons { display: flex; gap: 10px; margin: 18px 0; justify-content: center; }
+  button { padding: 10px 28px; border: none; border-radius: 6px; font-size: 0.95em; cursor: pointer; transition: 0.2s; }
+  #convertBtn { background: #0f3460; color: #a8d8ea; }
+  #convertBtn:hover { background: #1a5276; }
+  #copyBtn { background: #333; color: #ccc; }
+  #copyBtn:hover { background: #444; }
+  #downloadBtn { background: #333; color: #ccc; }
+  #downloadBtn:hover { background: #444; }
+  .drop-area { border: 2px dashed #444; border-radius: 8px; padding: 14px; text-align: center; color: #666; font-size: 0.85em; margin-bottom: 10px; transition: 0.2s; }
+  .drop-area.dragover { border-color: #a8d8ea; color: #a8d8ea; }
+  .msg { font-size: 0.8em; color: #888; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>AtomNum → Symbol 変換</h1>
+
+<div class="drop-area" id="dropArea">ここに .com ファイルをドラッグ&ドロップ、またはクリックして選択
+  <input type="file" id="fileInput" accept=".com,.txt,.log" style="display:none" multiple>
+</div>
+
+<div class="container">
+  <div class="panel">
+    <label>入力（原子番号表記）</label>
+    <textarea id="input" placeholder="6       -1.179048    2.621784    1.114204
+1       -1.264799    3.673897    1.353281
+8       -1.410834   -0.689686    2.728208"></textarea>
+  </div>
+  <div class="panel">
+    <label>出力（元素記号表記）</label>
+    <textarea id="output" readonly placeholder="変換結果がここに表示されます"></textarea>
+  </div>
+</div>
+
+<div class="buttons">
+  <button id="convertBtn">変換</button>
+  <button id="copyBtn">コピー</button>
+  <button id="downloadBtn">ダウンロード</button>
+</div>
+<div class="msg" id="msg"></div>
+
+<script>
+const SYMBOLS = {
+  1:'H',2:'He',3:'Li',4:'Be',5:'B',6:'C',7:'N',8:'O',9:'F',10:'Ne',
+  11:'Na',12:'Mg',13:'Al',14:'Si',15:'P',16:'S',17:'Cl',18:'Ar',19:'K',20:'Ca',
+  21:'Sc',22:'Ti',23:'V',24:'Cr',25:'Mn',26:'Fe',27:'Co',28:'Ni',29:'Cu',30:'Zn',
+  31:'Ga',32:'Ge',33:'As',34:'Se',35:'Br',36:'Kr',37:'Rb',38:'Sr',39:'Y',40:'Zr',
+  41:'Nb',42:'Mo',43:'Tc',44:'Ru',45:'Rh',46:'Pd',47:'Ag',48:'Cd',49:'In',50:'Sn',
+  51:'Sb',52:'Te',53:'I',54:'Xe',55:'Cs',56:'Ba',57:'La',72:'Hf',73:'Ta',74:'W',
+  75:'Re',76:'Os',77:'Ir',78:'Pt',79:'Au',80:'Hg',81:'Tl',82:'Pb',83:'Bi',86:'Rn'
+};
+
+function convert(text) {
+  return text.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return '';
+    const parts = trimmed.split(/\s+/);
+    let num, x, y, z;
+    if (parts.length === 6) {
+      // log形式: center_num atomic_num atomic_type x y z
+      num = parseInt(parts[1], 10);
+      [x, y, z] = [parts[3], parts[4], parts[5]];
+    } else if (parts.length === 4) {
+      // com形式: atomic_num x y z
+      num = parseInt(parts[0], 10);
+      [x, y, z] = [parts[1], parts[2], parts[3]];
+    } else {
+      return line;
+    }
+    if (isNaN(num)) return line;
+    const sym = SYMBOLS[num];
+    if (!sym) return line;
+    return ` ${sym.padEnd(2)}     ${x.padStart(12)}   ${y.padStart(12)}   ${z.padStart(12)}`;
+  }).join('\n');
+}
+
+document.getElementById('convertBtn').addEventListener('click', () => {
+  const input = document.getElementById('input').value;
+  document.getElementById('output').value = convert(input);
+  showMsg('変換しました');
+});
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const output = document.getElementById('output');
+  if (!output.value) { showMsg('出力が空です'); return; }
+  navigator.clipboard.writeText(output.value).then(() => showMsg('コピーしました'));
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const output = document.getElementById('output').value;
+  if (!output) { showMsg('出力が空です'); return; }
+  const blob = new Blob([output], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'converted.com';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showMsg('ダウンロードしました');
+});
+
+// ドラッグ&ドロップ
+const dropArea = document.getElementById('dropArea');
+const fileInput = document.getElementById('fileInput');
+
+dropArea.addEventListener('click', () => fileInput.click());
+dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('dragover'); });
+dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+dropArea.addEventListener('drop', e => {
+  e.preventDefault();
+  dropArea.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+function handleFiles(files) {
+  if (!files.length) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('input').value = e.target.result;
+    document.getElementById('output').value = convert(e.target.result);
+    showMsg(`${files[0].name} を読み込み・変換しました`);
+  };
+  reader.readAsText(files[0]);
+}
+
+function showMsg(text) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  setTimeout(() => el.textContent = '', 3000);
+}
+</script>
+</body>
+</html>
